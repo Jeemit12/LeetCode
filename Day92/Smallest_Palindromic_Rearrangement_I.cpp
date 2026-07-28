@@ -11,7 +11,8 @@ public:
         sort(s.begin(),s.begin()+mid);
         for(int i=mid;i<n;i++){
             s[i]=s[n-i-1];
-        }    
+        }  
+          
         return s;
     }
 };
