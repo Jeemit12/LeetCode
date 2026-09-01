@@ -1,0 +1,72 @@
+/*
+You are given an m x n grid classroom where a student volunteer is tasked with cleaning up litter scattered around the room. Each cell in the grid is one of the following:
+
+'S': Starting position of the student
+'L': Litter that must be collected (once collected, the cell becomes empty)
+'R': Reset area that restores the student's energy to full capacity, regardless of their current energy level (can be used multiple times)
+'X': Obstacle the student cannot pass through
+'.': Empty space
+You are also given an integer energy, representing the student's maximum energy capacity. The student starts with this energy from the starting position 'S'.
+
+Each move to an adjacent cell (up, down, left, or right) costs 1 unit of energy. If the energy reaches 0, the student can only continue if they are on a reset area 'R', which resets the energy to its maximum capacity energy.
+
+Return the minimum number of moves required to collect all litter items, or -1 if it's impossible.
+*/
+zclass Solution {
+    static constexpr int dx[4] = {0, 1, 0, -1};
+    static constexpr int dy[4] = {1, 0, -1, 0};
+
+public:
+    int minMoves(vector<string>& classroom, int energy) {
+        int m = classroom.size();
+        int n = classroom[0].size();
+        vector id(m, vector<int>(n));
+        int sx, sy, cnt = 0;
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                if (classroom[i][j] == 'S') {
+                    sx = i;
+                    sy = j;
+                } else if (classroom[i][j] == 'L') {
+                    id[i][j] = 1 << cnt++;
+                }
+            }
+        }
+
+        vector bestEnergy(m, vector(n, vector<int>(1 << cnt, -1)));
+        bestEnergy[sx][sy][0] = energy;
+        struct Info {
+            int x, y, mask, e, steps;
+        };
+        queue<Info> q;
+        q.push({sx, sy, 0, energy, 0});
+        while (!q.empty()) {
+            Info t = q.front();
+            q.pop();
+            if (t.mask == (1 << cnt) - 1) {
+                return t.steps;
+            }
+            if (t.e == 0) {
+                continue;
+            }
+            for (int i = 0; i < 4; i++) {
+                int nx = t.x + dx[i];
+                int ny = t.y + dy[i];
+
+                if (nx < 0 || nx >= m || ny < 0 || ny >= n ||
+                    classroom[nx][ny] == 'X') {
+                    continue;
+                }
+
+                int ne = classroom[nx][ny] == 'R' ? energy : t.e - 1;
+                int nmask = t.mask | id[nx][ny];
+
+                if (ne > bestEnergy[nx][ny][nmask]) {
+                    bestEnergy[nx][ny][nmask] = ne;
+                    q.push({nx, ny, nmask, ne, t.steps + 1});
+                }
+            }
+        }
+        return -1;
+    }
+};
